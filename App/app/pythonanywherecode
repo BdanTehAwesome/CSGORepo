@@ -1,0 +1,216 @@
+#Brendan Delaney
+#c00112317
+#my web app
+from flask import Flask, render_template, request, session
+
+app = Flask(__name__)
+app.secret_key = "super secret key"
+
+
+#################### First Page ##################################################
+@app.route('/')
+@app.route('/WordGame',methods=['POST'])
+def display_game() -> str:
+
+    import pickle
+
+    entry = []
+    entry = pickle.load(open('/home/bdan/mysite/templates/rankings.txt','rb'))
+
+    reventry = []
+    reventry = pickle.load(open('/home/bdan/mysite/templates/revrankings.txt','rb'))
+
+
+    return render_template('WordGame.php',
+                            entry = entry,
+                            reventry = reventry)
+
+######################### Play Game ##############################################
+
+@app.route('/PlayGame', methods=['POST'])
+def new_game() -> str:
+    import datetime
+    session.clear()
+    session['Page'] = 1 # used to not allow users to submit twice, if statements in jinja on html page
+    session['startTime'] = datetime.datetime.now()
+
+
+    import random
+    myList = open("/home/bdan/mysite/templates/bigwords.txt").readlines()
+    randomWord = (random.choice(myList))
+    randomWord = randomWord.strip() # thanks for this :)
+    session['randomword'] = randomWord.lower()
+
+    return render_template('PlayGame.php',
+                           randomWord = randomWord)
+
+############################# Results Page ####################################
+
+@app.route('/Results', methods=['POST'])
+def results_game() -> 'html':
+
+    import datetime
+    endTime = datetime.datetime.now()
+    totalTime = (endTime - session['startTime'])
+    session['totalTime'] = totalTime.total_seconds()
+    session['Page'] += 1
+
+    data = []
+    Output = ""
+    correctAns = True
+    notwords = []
+    SourceWord = ""
+    LetterCheck = ""
+    wordLength = ""
+    duplicates = ""
+    noWords = ""
+    letterchecker = ""
+    wordnotaword = ""
+
+    #make random word into a list of letters
+    randomWord = session['randomword'].lower()
+    randomWordList = []
+    for w in randomWord:
+        randomWordList.append(w)
+
+    #get list of users entry
+    for k,v in request.form.items():
+        data.append(v.lower())
+
+   # getting rid of the blank element that the button brings in
+    data = list(filter(None, data))
+
+    #checking if user entered the source word
+    if randomWord in data:
+        correctAns = None
+        SourceWord = " Entry can't be source word "
+        notwords.append(randomWord)
+
+    # check users entry
+    for word in data:
+        for letter in word:
+            if letter not in randomWordList:
+                correctAns = None
+                LetterCheck = " Some letters not in Source word! "
+                notwords.append(word)
+        if len(word) < 3:
+            correctAns = None
+            wordLength = "Some words not long enough"
+            notwords.append(word)
+
+    for word in data:
+        for l in set(word):
+            if word.count(l) > randomWord.count(l):
+                correctAns = None
+                letterchecker = "Letter entered more times than in source word "
+                notwords.append(word)
+
+    #cheap way of checking for unique elements ie duplicates
+    s = set(data)
+    if len(s) == 0:
+        correctAns = None
+        noWords = "You didn't enter any words\n"
+    elif len(s) < 7:
+        correctAns = None
+        duplicates = "Duplicate Entries or not enough words entered \n"
+
+    # check the validity of the users entered words
+    for value in s:
+        if len(value) == 3:
+            if value not in open('/home/bdan/mysite/templates/Words3.txt').read():
+                correctAns = None
+                notwords.append(value)
+                wordnotaword = "Word not in my list of words"
+        if len(value) == 4:
+            if value not in open('/home/bdan/mysite/templates/Words4.txt').read():
+                correctAns = None
+                notwords.append(value)
+                wordnotaword = "Word not in my list of words"
+        if len(value) == 5:
+            if value not in open('/home/bdan/mysite/templates/Words5.txt').read():
+                correctAns = None
+                notwords.append(value)
+                wordnotaword = "Word not in my list of words"
+        if len(value) == 6:
+            if value not in open('/home/bdan/mysite/templates/Words6.txt').read():
+                correctAns = None
+                notwords.append(value)
+                wordnotaword = "Word not in my list of words"
+        if len(value) == 7:
+            if value not in open('/home/bdan/mysite/templates/Words7.txt').read():
+                correctAns = None
+                notwords.append(value)
+                wordnotaword = "Word not in my list of words"
+        if len(value) > 7:
+            if value not in open('/home/bdan/mysite/templates/bigwords.txt').read():
+                correctAns = None
+                notwords.append(value)
+                wordnotaword = "Word not in my list of words"
+
+   #ouput
+    if correctAns == None:
+        session['correctAns'] = None
+        Output = Output + "You really messed up try again? \n"
+        check = "False"
+    else:
+        time = str(totalTime)
+        time = time[2:-4]
+        time = time[:2] + 'mins ' + time[3:5] + 'secs ' + time[6:] +'ms'
+        Output = "Your time was " + time
+        check = "True"
+    #reducing duplicates
+    notwords = set(notwords)
+
+    thisWasTheRandomwWord = session['randomword']
+
+    return render_template('Results.php',
+                           Output = Output,
+                           thisWasTheRandomwWord = thisWasTheRandomwWord,
+                           SourceWord = SourceWord,
+                           LetterCheck = LetterCheck,
+                           wordLength = wordLength,
+                           noWords = noWords,
+                           duplicates = duplicates,
+                           letterchecker = letterchecker,
+                           check = check,
+                           randomWord = randomWord,
+                           wordnotaword = wordnotaword,
+                           notwords = notwords)
+
+############################## Rankings ##############################################
+
+@app.route('/Rankings', methods=['POST'])
+def rankings() -> str:
+    from operator import itemgetter
+
+    import pickle
+    entry = []
+    entry = pickle.load(open('/home/bdan/mysite/templates/rankings.txt','rb'))
+    session['Page'] += 1  #used to not allow users to submit twice, if statements in jinja on html page
+    rankposition = 0
+
+    if session['Page'] ==3:
+        for k,v in request.form.items():
+            entry.append([v,session['totalTime']])
+            entry = sorted(entry,key = itemgetter(1))
+            pickle.dump(entry,open('/home/bdan/mysite/templates/rankings.txt','wb'))
+            reventry = entry
+            reventry = sorted(reventry,key = itemgetter(1),reverse=True)
+            pickle.dump(reventry,open('/home/bdan/mysite/templates/revrankings.txt','wb'))
+
+        count = 0
+        for i in (entry):
+            count+=1
+            if i == [v,session['totalTime']]:
+                rankposition = count
+
+    return render_template('Rankings.php',
+                        entry = entry,
+                        rankposition = rankposition)
+
+if __name__ == "__main__":
+
+    sess.init_app(app)
+
+    app.debug = True
+    app.run()

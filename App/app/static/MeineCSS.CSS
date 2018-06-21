@@ -1,0 +1,13 @@
+body {
+  background-image: url("background.jpg");
+  background-size:     cover;                      /* <------ */
+  background-position: center center;
+  color: white;
+  font-size: 20px;
+}
+.bigdirtyjew{
+  position: relative;
+  text-align: center;
+  top: 10px;
+  color: red;
+}

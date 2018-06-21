@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html class="no-js">
+<head>
+    <meta charset="utf-8">
+    <link rel="icon" href="//cdn.rawgit.com/twbs/bootstrap/v3.3.5/docs/favicon.ico">
+    <title>Sons of Chaos</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.12.1/bootstrap-table.min.css">
+    <link rel="stylesheet" href="bootstrap.min.css">
+    <link rel="stylesheet" href="bootstrap-table.css">
+    <link rel ="stylesheet" href ="zStyle.css">
+    <link rel ="stylesheet" href ="\static\MeineCSS.css">
+    <!--link rel="stylesheet" href="custom.css"/-->
+  </head>
+<body>
+  <h1 class ="bigdirtyjew"><img src= "../static/soc.png"></img></h1>
+  <br><br>
+<table class="table">
+  <thead>
+    <tr>
+      <td scope ="col"><u> </u></td>
+      <td scope ="col"><u>Name</u></td>
+      <td scope ="col"><u>Real Name</u></td>
+      <td scope ="col"><u>Total Kills</u></td>
+      <td scope ="col"><u>Total Deaths</u></td>
+      <td scope ="col"><u>K/D</u></td>
+      <td scope ="col"><u>MVP</u></td>
+      <td scope ="col"><u>Planted Bombs</u></td>
+      <td scope ="col"><u>Defuses</u></td>
+      <td scope ="col"><u>Headshot %</u></td>
+    </tr>
+  </thead>
+  <tbody>
+    {%- for i in result  %}
+    <tr>
+      {%- for y in i %}
+        {%- if loop.index==1  %}
+          <td scope ="row"><img src="{{y}}"></td>
+        {% else %}
+          <td scope ="row">{{y}}</td>
+        {%- endif %}
+    {%- endfor %}
+    </tr>
+  {%- endfor %}
+</tbody>
+</table>
+</body>
+</html>
